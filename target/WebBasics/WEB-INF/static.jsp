@@ -6,5 +6,6 @@
 <body>
 <h1>Опаньки!</h1>
 <h2>База даних не підключилась!</h2>
+<img src="img/tomcat.jpg" alt="tomcat"/>
 </body>
 </html>

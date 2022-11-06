@@ -22,6 +22,12 @@
             <span class="profile-cancel">&#x274C;</span>
             <span class="profile-confirm">&#x2705;</span>
         </div>
+        <div>
+            <span>Пошта:</span><b data-fieldname="email"><%=authUser.getEmail()%></b>
+            <span class="profile-edit">&#x270E;</span>
+            <span class="profile-cancel">&#x274C;</span>
+            <span class="profile-confirm">&#x2705;</span>
+        </div>
     </fieldset>
 </div>
 <script>

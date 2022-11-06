@@ -2,7 +2,9 @@ package step.learning.dao;
 
 import step.learning.entities.User;
 import step.learning.services.DataService;
+import step.learning.services.EmailService;
 import step.learning.services.HashService;
+import step.learning.services.GmailService;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -19,12 +21,14 @@ public class UserDAO {
     private final Connection connection ;
     private final HashService hashService ;
     private final DataService dataService ;
+    private final EmailService emailService;
 
     @Inject
-    public UserDAO( DataService dataService,  HashService hashService ) {
+    public UserDAO( DataService dataService,  HashService hashService, EmailService emailService) {
         this.connection = dataService.getConnection();
         this.hashService = hashService ;
         this.dataService = dataService ;
+        this.emailService = emailService ;
     }
     public User getUserById(String userId){
         String sql = "SELECT u.* FROM Users u WHERE u.id = ?";
@@ -60,6 +64,8 @@ public class UserDAO {
             prep.setString( 4, user.getName()  ) ;
             prep.setString( 5, user.getSalt()  ) ;
             prep.setString( 6, user.getAvatar()  ) ;
+            prep.setString( 7, user.getEmail()  ) ;
+            prep.setString( 8, user.getCode()  ) ;
             prep.executeUpdate() ;
         }
         catch( SQLException ex ) {
@@ -137,10 +143,17 @@ public class UserDAO {
             return false;
         }
         Map<String, String> data = new HashMap<>();
+        GmailService se = new GmailService();
         if(changes.getName() != null) data.put("name", changes.getName());
         if(changes.getAvatar() != null) data.put("avatar", changes.getAvatar());
 //        if(changes.getPass() != null) data.put("pass", this.makePasswordHash(changes.getPass(), changes.getSalt()));
         if (changes.getLogin() != null) data.put("login", changes.getLogin());
+        if (changes.getEmail() != null) {
+            data.put("email", changes.getEmail());
+            String code = se.getRandom();
+            changes.setCode(code);
+            data.put("code", code);
+        }
         if (data.isEmpty()) return false;
         boolean needCommand = false;
         StringBuilder sql = new StringBuilder("UPDATE Users SET ");
@@ -158,13 +171,37 @@ public class UserDAO {
             }
             prep.setString(i, changes.getId());
             prep.executeUpdate();
-            return true;
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
             System.out.println("UserDAO::updateUser()" + ex.getMessage()
                     + "\n" + sql + " -- " + changes);
+            return false;
         }
-        return false;
+        if (changes.getEmail() != null) {
+            se.send(changes, "Confirm your email", "Your code: " + changes.getCode());
+        }
+        return true;
     }
+    public boolean isEmailConfirmed(User user) {
+        return user.getCode() == null; 
+    }
+    public boolean confirmEmail(User user) {
+        if (user == null || user.getId() == null) {
+            return false;
+        }
+        String sqlCommand = "UPDATE `users` AS u SET u.`code`=NULL WHERE u.`id` = ?";
+
+        try(PreparedStatement statement = connection.prepareStatement(sqlCommand)) {
+            statement.setString(1, user.getId());
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            System.out.printf("Confirmation error: %s%n", ex.getMessage());
+            System.out.printf("Command: %s%n", sqlCommand);
+            return false;
+        }
+        return true;
+    }
+    
     private String makePasswordHash( String password, String salt ) {
         return hashService.hash( salt + password + salt ) ;
     }

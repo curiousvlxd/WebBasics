@@ -29,5 +29,9 @@
         <label for="userAvatar">Avatar</label>
         <input type="file" class="form-control" id="userAvatar" name="userAvatar">
     </div>
+    <div class="form-group">
+        <label for="userEmail">Email</label>
+        <input type="email" class="form-control" id="userEmail" name="userEmail" placeholder="Email">
     <button type="submit" class="btn btn-default">Submit</button>
+    </div>
 </form>

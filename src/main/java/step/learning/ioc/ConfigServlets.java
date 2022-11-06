@@ -12,7 +12,6 @@ public class ConfigServlets extends ServletModule {
         filter( "/*" ).through( DataFilter.class ) ;
         filter( "/*" ).through( AuthFilter.class ) ;
         filter( "/*" ).through( DemoFilter.class ) ;
-        
 
         // ... та сервлети
         serve( "/filter" ).with( FiltersServlet.class ) ;
@@ -21,7 +20,7 @@ public class ConfigServlets extends ServletModule {
         serve("/register/").with( RegUserServlet.class ) ;
         serve("/image/*").with( ImageServlet.class ) ;
         serve("/profile/").with( ProfileServlet.class ) ;
+        serve("/confirm/").with( ConfirmEmailServlet.class ) ;
         serve( "/" ).with( HomeServlet.class ) ;
-        
     }
 }

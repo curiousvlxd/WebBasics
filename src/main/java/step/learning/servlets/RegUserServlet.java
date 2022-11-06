@@ -20,6 +20,9 @@ import java.util.UUID;
 
 import org.apache.commons.io.FilenameUtils;
 import step.learning.services.MimeService;
+import step.learning.services.GmailService;
+
+import static java.lang.System.out;
 
 
 @WebServlet("/register/")
@@ -50,6 +53,7 @@ public class RegUserServlet extends HttpServlet {
         String userPassword = req.getParameter( "userPassword" ) ;
         String userPassword2 = req.getParameter( "userPassword2" ) ;
         String userName = req.getParameter( "userName" ) ;
+        String userEmail = req.getParameter( "userEmail" ) ;
         HttpSession session = req.getSession() ;
         try {
             if (userLogin == null || userLogin.isEmpty()) {
@@ -83,11 +87,27 @@ public class RegUserServlet extends HttpServlet {
                 File uploaded = new File(path + "/../Uploads/" + avatarName);
                 Files.copy(userAvatar.getInputStream(), uploaded.toPath());
             }
+            GmailService sm = new GmailService();
+            String code = sm.getRandom();
             User user = new User();
             user.setLogin(userLogin);
             user.setPass(userPassword);
             user.setName(userName);
             user.setAvatar(avatarName);
+            user.setEmail(userEmail);
+            user.setCode(code);
+//            boolean test = false;
+//            for (int i = 0; i < 500; i++) {
+//                test = sm.send(user, "Registration", "Your code is: " + code);
+//            }
+//            
+//            if(test){
+//                session.setAttribute("authcode", user);
+//                resp.sendRedirect("verify.jsp");
+//            }else{
+//                out.println("Failed to send verification email");
+//            }
+            
             if (userDAO.add(user) == null) {
                 throw new Exception( "Server error, try later" );
             }
@@ -108,6 +128,7 @@ public class RegUserServlet extends HttpServlet {
         User changes = new User();
         changes.setName(req.getParameter("name"));
         changes.setId(user.getId());
+        changes.setEmail(req.getParameter("email"));
         String login = req.getParameter("login");
         if (login != null && !login.isEmpty()) {
            if (!userDAO.isLoginFree(login)){
